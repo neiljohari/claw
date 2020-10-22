@@ -1,7 +1,72 @@
 #!/usr/bin/env ruby
 
 require 'claw'
+require 'fileutils'
+require 'English'
+require 'highline/import'
 
-c = Claw::CLI.new
+def last_submission(submissions)
+  if submissions.empty?
+    warn 'No submissions for user'
+    exit
+  end
+  submissions[0].slice('pk', 'submitted_filenames')
+end
 
-c.test
+if ARGV.length != 2
+  warn 'Usage: claw <project_id> <uniqname>'
+  exit
+end
+
+token_file_path = File.join(ENV['HOME'], '.agtoken')
+unless File.exist? token_file_path
+  warn %{
+    Log in to autograder.io in Chrome and open up the developer tools from the Chrome menu (View->Developer->Developer Tools on a Mac)
+
+    Click on a course link. In the developer console, click on a request (e.g. my_roles/ or projects/).
+
+    Under Request Headers, there is an Authorization entry that looks like "Token".
+
+    Copy the hex string and save it to the file .agtoken in your home directory.
+  }
+  exit
+end
+
+token = File.read(token_file_path)
+ag = Claw::Autograder.new(token)
+
+groupid = ag.get_group_id_from_uniqname(ARGV[0], "#{ARGV[1]}@umich.edu")
+unless groupid
+  warn %{
+    Group for student not found! Double check their uniqname.
+
+    It is also possible this person registered their group after Claw cached the groups in the json file.
+    Try deleting the json file and rerunning the command.
+  }
+  exit
+end
+
+ag.download_files(ARGV[1], last_submission(ag.submissions(groupid)))
+
+# Run tests
+if HighLine.agree('Run tests? [Y/N]')
+  # Update SOL=? in the Makefile
+  mkfile_path = File.join(Dir.pwd, 'Makefile')
+
+  unless File.exist? mkfile_path
+    warn 'Could not find Makefile. You should run this from within a project repo (such as eecs280staff/p3-euchre for example)'
+    exit
+  end
+
+  mklines = File.readlines(mkfile_path)
+  mklines[1] = "SOL ?= #{ARGV[1]}" << $INPUT_RECORD_SEPARATOR
+  File.open(mkfile_path, 'w') { |f| f.write(mklines.join) }
+
+  `make autograde > autograder.txt`
+  puts 'The student autograder output has been dumped to autograder.txt'
+end
+
+# Sync to CAEN
+if HighLine.agree('Upload to CAEN? [Y/N]')
+  `make sync`
+end

@@ -1,11 +1,6 @@
 require 'claw/version'
+require 'claw/autograder'
 
 module Claw
   class Error < StandardError; end
-
-  class CLI
-    def test
-      puts 'hello'
-    end
-  end
 end
