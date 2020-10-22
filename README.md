@@ -1,28 +1,55 @@
 # Claw
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/claw`. To experiment with that code, run `bin/console` for an interactive prompt.
+Welcome to Claw, a CLI for UofM teaching staff to help students more effectively.
 
-TODO: Delete this and the text above, and describe your gem
+Claw downloads a student's latest [Autograder](https://autograder.io) submission locally and then prompts the instructor to run all AG tests locally along with the option to sync to CAEN.
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'claw'
-```
-
-And then execute:
-
-    $ bundle install
-
-Or install it yourself as:
-
-    $ gem install claw
+Run `gem install claw` in your command line.
 
 ## Usage
 
-TODO: Write usage instructions here
+### Obtaining a Token
+
+> Log in to autograder.io in Chrome and open up the developer tools from the Chrome menu (View->Developer->Developer Tools on a Mac).
+> Click on a course link.
+> In the developer console, click on a request (e.g. my_roles/ or projects/). Under Request Headers, there is an Authorization entry that looks like "Token ".
+> Copy the hex string and save it to the file .agtoken in your home directory.
+> -- <cite>[autograder-contrib](https://github.com/eecs-autograder/autograder-contrib)</cite>
+
+### Setting Up a Solution Repository
+
+1. Clone a solution repository (like `eecs280staff/<solution repo>`) locally via `git clone`
+2. Ensure the solution repo Makefile has an `autograde` target (all EECS280 project repos do)
+3. Optionally add a `sync` target to the Makefile. This target should sync _the
+   entire_ solution repo to CAEN. An example target would be:
+
+```
+# Copy files to CAEN Linux
+sync :
+	rsync \
+  -rtv \
+  --delete \
+  --exclude '.git*' \
+  --filter=':- .gitignore' \
+  ./ \
+	<your uniqname here>@login.engin.umich.edu:ia-280-p3
+```
+
+### Running Claw
+
+In a solution repo, run `claw <project id> <student uniqname>`.
+
+You can determine the project id by navigating to the project on `autograder.io` and looking at the URL.
+For instance, in Fall 2020, EECS280's Euchre project was available at [https://autograder.io/web/project/721](https://autograder.io/web/project/721) which means the project id was `721`.
+
+This will download a json file containing all groups of students who have submitted to the Autograder (including those working alone) and then download the given student's latest solution into a directory `./<uniqname>/`.
+Subsequent runs will reuse the previously downloaded json file; you should delete this file periodically to keep your list of students up to date.
+
+Claw will then prompt to run all private autograder tests from the repo. It assumes the Makefile has an `autograde` target, and will dump the output to a file called `autograder.io`.
+
+Finally, Claw will prompt the user whether to upload to CAEN. It assumes the Makefile has a `sync` target.
 
 ## Development
 
@@ -33,7 +60,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/claw.
-
 
 ## License
 
