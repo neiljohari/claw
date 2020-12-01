@@ -19,18 +19,10 @@ module Claw
       }
     end
 
-    def download_groups(projectid)
-      puts 'Downloading groups json file (this could take a while)...'
-      File.open(File.join(Dir.pwd, "project_#{projectid}_groups.json"), 'w') do |f|
-        f.write(self.class.get("/api/projects/#{projectid}/groups/", @options))
-      end
-    end
-
     def get_group_id_from_uniqname(projectid, name)
       puts 'Searching for user group id...'
-      download_groups(projectid) unless File.exist? "project_#{projectid}_groups.json"
 
-      groups_json = JSON.parse(File.read(File.join(Dir.pwd, "project_#{projectid}_groups.json")))
+      groups_json = self.class.get("/api/projects/#{projectid}/groups/", @options)
 
       groups_json.each do |group|
         return group['pk'] if group['member_names'].include?(name)

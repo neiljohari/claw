@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    claw (0.1.0)
+    claw (0.1.1)
       highlight
       httparty
 

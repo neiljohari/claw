@@ -39,32 +39,11 @@ groupid = ag.get_group_id_from_uniqname(ARGV[0], "#{ARGV[1]}@umich.edu")
 unless groupid
   warn %{
     Group for student not found! Double check their uniqname.
-
-    It is also possible this person registered their group after Claw cached the groups in the json file.
-    Try deleting the json file and rerunning the command.
   }
   exit
 end
 
 ag.download_files(ARGV[1], last_submission(ag.submissions(groupid)))
-
-# Run tests
-if HighLine.agree('Run tests? [Y/N]')
-  # Update SOL=? in the Makefile
-  mkfile_path = File.join(Dir.pwd, 'Makefile')
-
-  unless File.exist? mkfile_path
-    warn 'Could not find Makefile. You should run this from within a project repo (such as eecs280staff/p3-euchre for example)'
-    exit
-  end
-
-  mklines = File.readlines(mkfile_path)
-  mklines[1] = "SOL ?= #{ARGV[1]}" << $INPUT_RECORD_SEPARATOR
-  File.open(mkfile_path, 'w') { |f| f.write(mklines.join) }
-
-  `make autograde > autograder.txt`
-  puts 'The student autograder output has been dumped to autograder.txt'
-end
 
 # Sync to CAEN
 if HighLine.agree('Upload to CAEN? [Y/N]')

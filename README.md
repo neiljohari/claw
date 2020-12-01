@@ -2,7 +2,7 @@
 
 Welcome to Claw, a CLI for UofM teaching staff to help students more effectively.
 
-Claw downloads a student's latest [Autograder](https://autograder.io) submission locally and then prompts the instructor to run all AG tests locally along with the option to sync to CAEN.
+Claw downloads a student's latest [Autograder](https://autograder.io) submission locally and then prompts the instructor to sync the students files to CAEN.
 
 ## Installation
 
@@ -44,10 +44,8 @@ In a solution repo, run `claw <project id> <student uniqname>`.
 You can determine the project id by navigating to the project on `autograder.io` and looking at the URL.
 For instance, in Fall 2020, EECS280's Euchre project was available at [https://autograder.io/web/project/721](https://autograder.io/web/project/721) which means the project id was `721`.
 
-This will download a json file containing all groups of students who have submitted to the Autograder (including those working alone) and then download the given student's latest solution into a directory `./<uniqname>/`.
-Subsequent runs will reuse the previously downloaded json file; you should delete this file periodically to keep your list of students up to date.
-
-Claw will then prompt to run all private autograder tests from the repo. It assumes the Makefile has an `autograde` target, and will dump the output to a file called `autograder.io`.
+The students code will be downloaded to a folder corresponding to their
+uniqname.
 
 Finally, Claw will prompt the user whether to upload to CAEN. It assumes the Makefile has a `sync` target.
 
